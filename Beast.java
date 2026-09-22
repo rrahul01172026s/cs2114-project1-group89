@@ -18,6 +18,7 @@ public class Beast
     private final BeastType type;
     private final int maxHealth;
     private final int maxStamina;
+    private final int speed;
     private final Attack[] attacks;
     private int currentHealth;
     private int currentStamina;
@@ -27,7 +28,7 @@ public class Beast
      * Creates a beast at full input and stamina
      */
     public Beast(String name, BeastType type, int maxHealth, int maxStamina 
-           , Attack[] attacks) {
+           , int speed, Attack[] attacks) {
         if (name == null || name.isBlank()) {
             throw new IllegalArgumentException("Beast name cannot be blank");
         }
@@ -39,6 +40,9 @@ public class Beast
         }
         if (maxStamina <= 0) {
             throw new IllegalArgumentException("Stamina cannot be less than 0");
+        }
+        if (speed <= 0) {
+            throw new IllegalArgumentException("Speed cannot be less than 0");
         }
         for (Attack a : attacks) {
             if (a == null) {
@@ -52,6 +56,7 @@ public class Beast
         this.attacks = attacks.clone();
         this.currentHealth = maxHealth;
         this.currentStamina = maxStamina;
+        this.speed = speed;
     }
     //~Public  Methods ........................................................
     /** @return the Beast's name */
@@ -78,6 +83,12 @@ public class Beast
             throw new IndexOutOfBoundsException("Attack must be be 0-3");
         }
         return attacks[index];
+    }
+    /**
+     * @return speed of the beast
+     */
+    public int getSpeed() {
+        return this.speed;
     }
     /**
      * @return 4, the number of attacks every Beast has
