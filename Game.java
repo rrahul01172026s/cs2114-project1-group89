@@ -1,5 +1,5 @@
 import java.util.List;
-import java.util.Queue;
+
 import java.util.Random;
 import java.util.NoSuchElementException;
 
@@ -25,10 +25,12 @@ public class Game {
     private List<Beast> starters;
 
     /** Opponents not yet beaten, in fight order. */
-    private Queue<Opponent> opponents;
+    private List<Opponent> opponents;
 
     /** The player's chosen Beast; null until {@link #chooseStarter()} runs. */
     private Beast playerBeast;
+
+    private int opponentsDefeated;
 
     /**
      * Stores the dependencies used for the whole session.
@@ -87,6 +89,7 @@ public class Game {
         starters = data.createStarters();
         opponents = data.createOpponents();
         playerBeast = null;
+        opponentsDefeated = 0;
     }
 
 
@@ -95,8 +98,12 @@ public class Game {
      * returns that Beast.
      *
      * @return the chosen starter Beast
+     * @throws IllegalStateException if called before starting a new run
      */
     public Beast chooseStarter() {
+        if (starters == null) {
+            throw new IllegalStateException("Must start a new run first.");
+        }
         display.showStarterMenu(starters);
         int choice = input.readChoice("Pick a starter", 1, starters.size());
         playerBeast = starters.get(choice - 1);
@@ -105,31 +112,39 @@ public class Game {
 
 
     /**
-     * Fights opponents from the front of the queue until it is empty or the
-     * player loses. On a win against an opponent, that opponent is removed
-     * from the queue and the player's Beast is fully healed before the
-     * next fight. On a loss, the defeat screen is shown for the opponent
-     * that won.
+     * Fights opponents in order until all are beaten or the player loses.
+     * On a win against an opponent, the player's Beast is fully healed before the
+     * next fight. On a loss, the defeat screen is shown.
      *
-     * @return true once every opponent has been beaten (the queue is
-     *         empty); false if the player lost a battle
+     * @return true once every opponent has been beaten; false if the player lost a battle
+     * @throws IllegalStateException if called before a starter is chosen
      */
     public boolean playCampaign() {
-        while (!opponents.isEmpty()) {
-            Opponent opponent = opponents.peek();
+        if (playerBeast == null) {
+            throw new IllegalStateException("Must choose a starter first.");
+        }
+        for (Opponent opponent : opponents) {
             Battle battle = new Battle(playerBeast, opponent, input, display,
                 calculator, random);
             BattleResult result = battle.run();
 
             if (result == BattleResult.PLAYER_LOST) {
-                display.showDefeat(opponent);
+                display.showDefeat();
                 return false;
             }
 
-            opponents.poll();
-            playerBeast.restoreHealth();
+            opponentsDefeated++;
+            playerBeast.restoreAll();
         }
         return true;
+    }
+
+
+    /**
+     * @return the player's chosen beast
+     */
+    public Beast getPlayerBeast() {
+        return playerBeast;
     }
 
 
@@ -137,6 +152,9 @@ public class Game {
      * @return the number of opponents not yet beaten, for tests
      */
     public int getOpponentsRemaining() {
-        return opponents.size();
+        if (opponents == null) {
+            return 0;
+        }
+        return opponents.size() - opponentsDefeated;
     }
 }

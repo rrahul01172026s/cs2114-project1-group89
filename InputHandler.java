@@ -41,7 +41,7 @@ public class InputHandler {
             display.showPrompt(prompt + " (" + min + "-" + max + ")");
             String line = scanner.nextLine().trim();   // NoSuchElementException if input ends
             if (line.isEmpty()) {
-                display.showError("please type a number.");
+                display.showError("Please type a number.");
                 continue;
             }
             int value;
@@ -49,12 +49,11 @@ public class InputHandler {
                 value = Integer.parseInt(line);
             }
             catch (NumberFormatException e) {
-                display.showError("\"" + line + "\" is not a whole number. Enter "
-                    + min + " to " + max + ".");
+                display.showError("'" + line + "' is not a whole number.");
                 continue;
             }
             if (value < min || value > max) {
-                display.showError("please enter a number from " + min + " to " + max + ".");
+                display.showError("Please enter a number from " + min + " to " + max + ".");
                 continue;
             }
             return value;
