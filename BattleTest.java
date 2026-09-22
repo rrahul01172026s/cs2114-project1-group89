@@ -11,7 +11,7 @@ public class BattleTest extends TestCase {
     // ~ Fields ................................................................
     private Battle battle;
 
-    private Attack[] ATTACKS = { new Attack("Attack 1", 1, BeastType.FIRE, 1),
+    private Attack[] ATTACKS = { new Attack("Attack 1", 50, BeastType.FIRE, 1),
         new Attack("Attack 2", 2, BeastType.WATER, 1), new Attack("Attack 3", 3,
             BeastType.GRASS, 1), new Attack("Attack 4", 4, BeastType.NORMAL,
                 1) };
@@ -26,7 +26,7 @@ public class BattleTest extends TestCase {
     
     private Display DISPLAY = new Display(System.out);
     
-    private InputHandler INPUT_HANDLER = new InputHandler(new Scanner("ph"),
+    private InputHandler INPUT_HANDLER = new InputHandler(new Scanner("1\n1\n1\n1\n1"),
         DISPLAY);
 
     private DamageCalculator CALCULATOR = new DamageCalculator();
@@ -42,7 +42,8 @@ public class BattleTest extends TestCase {
      * Test run method
      */
     public void testRun() {
-        
+        battle.run();
+ 
 
     }
 
@@ -50,7 +51,14 @@ public class BattleTest extends TestCase {
     /**
      * Tests getNumberTurn method
      */
-    public void testGetNumberTurn() {
+    public void testGetTurnNumber() {
+        assertEquals(0, battle.getTurnNumber());
+    }
+    
+    /**
+     * Tests getNumberTurn method
+     */
+    public void testGetResult() {
 
     }
 }

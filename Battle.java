@@ -1,3 +1,5 @@
+import java.util.Random;
+
 /**
  * Handles the turn-based combat
  * 
@@ -11,11 +13,12 @@ public class Battle {
 
     // String types are placeholders for when the actual classes are built
     private Beast playerBeast;
-    private String opponent; // TODO implement when opponent class is created
+    private Opponent opponent;
     private Beast opponentBeast;
     private InputHandler inputHandler;
     private Display display;
     private DamageCalculator calculator;
+    private Random random;
     private int turnNumber;
 
     private boolean playerFirst;
@@ -41,29 +44,31 @@ public class Battle {
      */
     public Battle(
         Beast playerBeast,
-        String opponent,
-        Beast opponentBeast,
+        Opponent opponent,
         InputHandler inputHandler,
         Display display,
-        DamageCalculator calculator) {
+        DamageCalculator calculator,
+        Random random) {
 
-        if (playerBeast == null || opponent == null || opponentBeast == null
-            || inputHandler == null || display == null || calculator == null) {
+        if (playerBeast == null || opponent == null || inputHandler == null || display == null || calculator == null
+            || random == null) {
             throw new IllegalArgumentException();
         }
 
         this.playerBeast = playerBeast;
         this.opponent = opponent;
-        this.opponentBeast = opponentBeast;
+        this.opponentBeast = opponent.getBeast();
         this.inputHandler = inputHandler;
         this.display = display;
         this.calculator = calculator;
+        this.random = random;
         turnNumber = 0;
         determineTurnOrder();
 
     }
 
 
+    // ~Public Methods ........................................................
     // ----------------------------------------------------------
     /**
      * Gets the number of turns that have been played thus far
@@ -75,15 +80,12 @@ public class Battle {
     }
 
 
+    // ----------------------------------------------------------
     /**
-     * Checks if the current battle is over
+     * Place a description of your method here.
      * 
-     * @return true if any beast fainted
+     * @return true if enemy beast fainted
      */
-    private boolean isOver() {
-        return playerBeast.isFainted() || opponentBeast.isFainted();
-    }
-    
     public BattleResult getResult() {
         if (opponentBeast.isFainted()) {
             return BattleResult.PLAYER_WON;
@@ -103,23 +105,27 @@ public class Battle {
      *         fainted or the
      *         opponent beast fainted
      */
-    // ~Public Methods ........................................................
     public BattleResult run() {
-        System.out.println("Opponent intro line");
+        display.showMessage(opponent.getIntroLine());
         while (!isOver()) {
             playTurn();
         }
         BattleResult result = getResult();
         if (result == BattleResult.PLAYER_WON) {
             display.showBattleWon(opponentBeast);
-            //TODO opponent lose line implementation
+            display.showMessage(opponent.getLoseLine());
         }
         else {
             display.showBattleLost(playerBeast);
-            //TODO opponent win line implementation
+            display.showMessage(opponent.getWinLine());
         }
-        
+
         return result;
+    }
+
+
+    private boolean isOver() {
+        return playerBeast.isFainted() || opponentBeast.isFainted();
     }
 
 
@@ -143,7 +149,13 @@ public class Battle {
 
         if (!opponentBeast.isFainted()) {
             // placeholder behavior for opponent class
-            rest(opponentBeast);
+            if (opponent.shouldRest()) {
+                rest(opponentBeast);
+            }
+            else {
+                useAttack(opponentBeast, playerBeast, opponent.chooseAttack(
+                    random));
+            }
         }
 
         if (!playerBeast.isFainted()) {
