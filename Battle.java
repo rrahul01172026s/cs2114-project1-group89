@@ -8,8 +8,8 @@ import java.util.Random;
  */
 public class Battle {
     // ~ Fields ................................................................
-    private static final int STAMINA_REGEN = 3;
-    private static final int REST_STAMINA_RECOVERED = 7;
+    private static final int STAMINA_REGEN = 1;
+    private static final int REST_STAMINA_RECOVERED = 1;
 
     // String types are placeholders for when the actual classes are built
     private Beast playerBeast;
@@ -31,14 +31,14 @@ public class Battle {
      *            The player's Beast
      * @param opponent
      *            The current opponent being faced
-     * @param opponentBeast
-     *            The Beast of the opponent
      * @param inputHandler
      *            The inputHandler
      * @param display
      *            The Display
      * @param calculator
      *            The calculator
+     * @param random
+     *            Random number generator
      * @throws IllegalArgumentException
      *             When an argument is null
      */
@@ -50,8 +50,8 @@ public class Battle {
         DamageCalculator calculator,
         Random random) {
 
-        if (playerBeast == null || opponent == null || inputHandler == null || display == null || calculator == null
-            || random == null) {
+        if (playerBeast == null || opponent == null || inputHandler == null
+            || display == null || calculator == null || random == null) {
             throw new IllegalArgumentException();
         }
 
@@ -106,6 +106,9 @@ public class Battle {
      *         opponent beast fainted
      */
     public BattleResult run() {
+        playerBeast.restoreAll();
+        opponentBeast.restoreAll();
+
         display.showMessage(opponent.getIntroLine());
         while (!isOver()) {
             playTurn();
@@ -131,11 +134,9 @@ public class Battle {
 
     /**
      * Runs through a single turn of a participant
+     * @precondition isOver cannot be true
      */
     private void playTurn() {
-        if (isOver()) {
-            throw new IllegalStateException();
-        }
         if (playerFirst) {
             display.showStatus(playerBeast, opponentBeast);
             Attack chosenAttack = choosePlayerAttack();
@@ -148,7 +149,6 @@ public class Battle {
         }
 
         if (!opponentBeast.isFainted()) {
-            // placeholder behavior for opponent class
             if (opponent.shouldRest()) {
                 rest(opponentBeast);
             }
