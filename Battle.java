@@ -2,165 +2,158 @@
  * Handles the turn-based combat
  * 
  * @author kvasallo
- * @version Sep 17, 2026
+ * @author Tien Vu
+ * @author Antigravity
+ * @version Sep 22, 2026
  */
+import java.util.Random;
+
 public class Battle {
     // ~ Fields ................................................................
     private static final int STAMINA_REGEN = 3;
-    private static final int REST_STAMINA_RECOVERED = 7;
+    private static final int REST_RECOVERY = 12;
 
-    // String types are placeholders for when the actual classes are built
-    private Beast playerBeast;
-    private String opponent; // TODO implement when opponent class is created
-    private Beast opponentBeast;
-    private InputHandler inputHandler;
-    private Display display;
-    private DamageCalculator calculator;
+    private final Beast playerBeast;
+    private final Opponent opponent;
+    private final Beast enemyBeast;
+    private final InputHandler input;
+    private final Display display;
+    private final DamageCalculator calculator;
+    private final Random random;
     private int turnNumber;
-
-    private boolean playerFirst;
 
     // ~ Constructors ..........................................................
     /**
      * Create a new Battle object.
      * 
-     * @param playerBeast
-     *            The player's Beast
-     * @param opponent
-     *            The current opponent being faced
-     * @param opponentBeast
-     *            The Beast of the opponent
-     * @param inputHandler
-     *            The inputHandler
-     * @param display
-     *            The Display
-     * @param calculator
-     *            The calculator
-     * @throws IllegalArgumentException
-     *             When an argument is null
+     * @param playerBeast The player's Beast
+     * @param opponent The current opponent being faced
+     * @param input The inputHandler
+     * @param display The Display
+     * @param calculator The calculator
+     * @param random The Random instance for opponent moves
+     * @throws IllegalArgumentException When an argument is null
      */
     public Battle(
         Beast playerBeast,
-        String opponent,
-        Beast opponentBeast,
-        InputHandler inputHandler,
+        Opponent opponent,
+        InputHandler input,
         Display display,
-        DamageCalculator calculator) {
+        DamageCalculator calculator,
+        Random random) {
 
-        if (playerBeast == null || opponent == null || opponentBeast == null
-            || inputHandler == null || display == null || calculator == null) {
-            throw new IllegalArgumentException();
+        if (playerBeast == null || opponent == null || input == null
+            || display == null || calculator == null || random == null) {
+            throw new IllegalArgumentException("Arguments cannot be null");
         }
 
         this.playerBeast = playerBeast;
         this.opponent = opponent;
-        this.opponentBeast = opponentBeast;
-        this.inputHandler = inputHandler;
+        this.enemyBeast = opponent.getBeast();
+        this.input = input;
         this.display = display;
         this.calculator = calculator;
-        turnNumber = 0;
-        determineTurnOrder();
-
+        this.random = random;
+        this.turnNumber = 0;
     }
-
 
     // ----------------------------------------------------------
     /**
      * Gets the number of turns that have been played thus far
      * 
-     * @return numberOfTurnsElapsed number of turns that have been played
+     * @return number of turns that have been played
      */
     public int getTurnNumber() {
         return turnNumber;
     }
-
 
     /**
      * Checks if the current battle is over
      * 
      * @return true if any beast fainted
      */
-    private boolean isOver() {
-        return playerBeast.isFainted() || opponentBeast.isFainted();
+    public boolean isOver() {
+        return playerBeast.isFainted() || enemyBeast.isFainted();
     }
     
     public BattleResult getResult() {
-        if (opponentBeast.isFainted()) {
+        if (!isOver()) {
+            throw new IllegalStateException("Battle is not over yet");
+        }
+        if (enemyBeast.isFainted()) {
             return BattleResult.PLAYER_WON;
         }
-        if (playerBeast.isFainted()) {
-            return BattleResult.PLAYER_LOST;
-        }
-        throw new IllegalStateException("Battle is not over yet");
+        return BattleResult.PLAYER_LOST;
     }
-
 
     // ----------------------------------------------------------
     /**
      * Adds dialogue and continually calls playTurn until a victor is determined
      * 
-     * @return battle result PLAYER_WON or PLAYER_LOST either player's beast
-     *         fainted or the
-     *         opponent beast fainted
+     * @return battle result PLAYER_WON or PLAYER_LOST
      */
-    // ~Public Methods ........................................................
     public BattleResult run() {
-        System.out.println("Opponent intro line");
+        display.showMessage(opponent.getIntroLine());
         while (!isOver()) {
             playTurn();
         }
         BattleResult result = getResult();
         if (result == BattleResult.PLAYER_WON) {
-            display.showBattleWon(opponentBeast);
-            //TODO opponent lose line implementation
+            display.showBattleWon(enemyBeast);
+            display.showMessage(opponent.getLoseLine());
         }
         else {
             display.showBattleLost(playerBeast);
-            //TODO opponent win line implementation
+            display.showMessage(opponent.getWinLine());
         }
         
         return result;
     }
 
-
     /**
      * Runs through a single turn of a participant
      */
-    private void playTurn() {
+    public void playTurn() {
         if (isOver()) {
-            throw new IllegalStateException();
-        }
-        if (playerFirst) {
-            display.showStatus(playerBeast, opponentBeast);
-            Attack chosenAttack = choosePlayerAttack();
-            if (chosenAttack == null) {
-                rest(playerBeast);
-            }
-            else {
-                useAttack(playerBeast, opponentBeast, chosenAttack);
-            }
+            throw new IllegalStateException("Battle is over");
         }
 
-        if (!opponentBeast.isFainted()) {
-            // placeholder behavior for opponent class
-            rest(opponentBeast);
+        turnNumber++;
+        display.showStatus(playerBeast, enemyBeast);
+        display.showMoveMenu(playerBeast, REST_RECOVERY);
+        Attack chosenAttack = choosePlayerAttack();
+        if (chosenAttack == null) {
+            playerBeast.recoverStamina(REST_RECOVERY);
+            display.showRest(playerBeast, REST_RECOVERY);
+        }
+        else {
+            useAttack(playerBeast, enemyBeast, chosenAttack);
+        }
+
+        if (!enemyBeast.isFainted()) {
+            if (opponent.shouldRest()) {
+                enemyBeast.recoverStamina(REST_RECOVERY);
+                display.showRest(enemyBeast, REST_RECOVERY);
+            }
+            else {
+                Attack enemyAttack = opponent.chooseAttack(random);
+                useAttack(enemyBeast, playerBeast, enemyAttack);
+            }
         }
 
         if (!playerBeast.isFainted()) {
             playerBeast.recoverStamina(STAMINA_REGEN);
         }
 
-        if (!opponentBeast.isFainted()) {
-            opponentBeast.recoverStamina(STAMINA_REGEN);
+        if (!enemyBeast.isFainted()) {
+            enemyBeast.recoverStamina(STAMINA_REGEN);
         }
-
     }
-
 
     private Attack choosePlayerAttack() {
         int restOption = playerBeast.getAttackCount() + 1;
         while (true) {
-            int choice = inputHandler.readChoice("Choose move", 1, restOption);
+            int choice = input.readChoice("Choose move", 1, restOption);
             if (choice == restOption) {
                 return null;
             }
@@ -169,34 +162,16 @@ public class Battle {
             if (playerBeast.canUse(attackChosen)) {
                 return attackChosen;
             }
-            display.showError("pick a different move");
+            display.showError("Not enough stamina for " + attackChosen.getName() + " (needs " 
+                + attackChosen.getStaminaCost() + ", you have " + playerBeast.getCurrentStamina() + ").");
         }
     }
-
-
-    private void rest(Beast beast) {
-        beast.recoverStamina(REST_STAMINA_RECOVERED);
-        display.showRest(beast, REST_STAMINA_RECOVERED);
-    }
-
-
-    private void determineTurnOrder() {
-        if (playerBeast.getSpeed() >= opponentBeast.getSpeed()) {
-            playerFirst = true;
-        }
-        else {
-            playerFirst = false;
-        }
-    }
-
 
     private void useAttack(Beast attacker, Beast defender, Attack attack) {
         attacker.useStamina(attack.getStaminaCost());
         int damage = calculator.calculateDamage(attack, defender);
         defender.takeDamage(damage);
         display.showAttack(attacker, attack, damage);
-        display.showEffectiveness(calculator.getEffectiveness(attack.getType(),
-            defender.getType()));
+        display.showEffectiveness(calculator.getEffectiveness(attack.getType(), defender.getType()));
     }
-
 }
