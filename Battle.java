@@ -1,3 +1,5 @@
+import java.util.Random;
+
 /**
  * Handles the turn-based combat
  * 
@@ -6,8 +8,6 @@
  * @author Antigravity
  * @version Sep 22, 2026
  */
-import java.util.Random;
-
 public class Battle {
     // ~ Fields ................................................................
     private static final int STAMINA_REGEN = 3;
@@ -68,9 +68,9 @@ public class Battle {
     }
 
     /**
-     * Checks if the current battle is over
+     * Place a description of your method here.
      * 
-     * @return true if any beast fainted
+     * @return true if enemy beast fainted
      */
     public boolean isOver() {
         return playerBeast.isFainted() || enemyBeast.isFainted();
@@ -106,12 +106,13 @@ public class Battle {
             display.showBattleLost(playerBeast);
             display.showMessage(opponent.getWinLine());
         }
-        
+
         return result;
     }
 
     /**
      * Runs through a single turn of a participant
+     * @precondition isOver cannot be true
      */
     public void playTurn() {
         if (isOver()) {

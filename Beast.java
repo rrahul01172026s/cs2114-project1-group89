@@ -71,6 +71,10 @@ public class Beast
     public int getCurrentStamina() { return currentStamina; }
     /** @return maximum stamina */
     public int getMaxStamina() { return maxStamina; }
+    /** @return speed of beast */
+    public int getSpeed() {
+        return this.speed;
+    }
     
     /**
      * @param index a 0 based position from 0-3
@@ -83,12 +87,6 @@ public class Beast
             throw new IndexOutOfBoundsException("Attack must be be 0-3");
         }
         return attacks[index];
-    }
-    /**
-     * @return speed of the beast
-     */
-    public int getSpeed() {
-        return this.speed;
     }
     /**
      * @return 4, the number of attacks every Beast has
