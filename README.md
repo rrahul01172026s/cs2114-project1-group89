@@ -6,10 +6,10 @@
 ---
 
 ## 👥 The Team & Contributions
-* **Tien Vu** – Controllers & Architecture (`Game.java`, `InputHandler.java`, `BeastBattles.java`, session flow, starter selection logic).
-* **Kyle Vasallo** – Battle Controller & Core Combat (`Battle.java`, turn-based combat loop, stamina regeneration & rest logic).
-* **Karthik Mittadhoddi** – Models & Mechanics (`Attack.java`, `Beast.java`, `BeastType.java`, `DamageCalculator.java`).
-* **Rahul** – Game Content & NPC Data (`Opponent.java`, `GameData.java`, `Display.java`, dialogue, starter/trainer balancing).
+* **Tien Vu** — Game Flow & Entry Point (`Game.java`, `BeastBattles.java`): session loop, starter selection, restart after a loss, object wiring.
+* **Kyle Vasallo** — Battle Controller & Combat Rules (`Battle.java`, `DamageCalculator.java`, `BattleResult.java`): turn-based combat loop, damage and type effectiveness, stamina regeneration and rest logic.
+* **Karthik Mittadhoddi** — Terminal I/O (`InputHandler.java`, `Display.java`): input validation and re-prompting, menus, health and stamina output.
+* **Rahul Rajendran** — Model & Game Content (`Beast.java`, `Attack.java`, `Opponent.java`, `GameData.java`, `BeastType.java`): Beast state and stamina rules, NPC dialogue, starter and trainer balancing.
 
 ---
 
